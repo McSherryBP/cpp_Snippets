@@ -1,0 +1,98 @@
+Brendan McSherry
+HW2
+netsimulator
+
+The makefile should prepare the output file 'netSimB' for use.
+!!!! 
+As is, the program will not finish the simulation without a memory leak. The simulation is commented out, so that the other components of the project may be viewed without this problem. Many of the requirements of the assignment can still be viewed at runtime, fortunately. 
+!!!!
+*** How to run program ****
+
+You can run the program in one of two ways.
+The first way will generate a random connected graph of nodes of size 150.
+The way the graph is generated will gurantee that a route between every pair of nodes exists.
+
+*** fileGeneration = ' ./netSimB' 
+*** simualtion = './netSimB <seed> nodeFile.txt' 
+<seed> must be replaced with any integer value for the randomization seed.
+
+// Several outputs have been commented out: these can be helpful for seeing how the values are changing in the code, but flood the output if left in.
+
+* 0 Argument runtime *
+
+' ./netSimB' will run the code this way.
+
+TLDR: Generates a textfile with randomly generated connections. You can pass this node file as a parameter for the simlation mode.
+
+Expanded: Passing 0 arguments begins the code by initiating the nodes; providing them a node number, and zeroing out the other values.
+
+Next the nodes are connected by choosing at random. The first connection takes 2 random nodes from the collection of all nodes and adds them to a separate vector of connected nodes, while also removing them from the 'rawNodes' vector.
+
+from this point on, one node is selected from the vector of connected nodes and another from the vector remaining nodes. This way, there is an undefined number of edges that each node may have and it is guranteed that each node is connected to at least one other node. When this is finished, the connected vector has 150 nodes and the rawnodes vector is empty.
+
+These connected pairs are then written to a textfile which has a default name of 'nodeFile.txt'. Each time you run the code this way, the file should be filled with new pairs of connections.
+
+
+* Seed and nodeFile Argument runtime *
+
+' ./netSimB <seed> nodeFile.txt '	will run the code with arguments
+<seed> should be replaced with any integer
+
+
+
+ ************  Program structure ************************
+
+------------ netsim.cpp // Initializes objects and runs the simulation
+
+*** Functions *****
+* calcExponentialDistribution:
+Performs an exponentially distributed randomization for queue handling in nodes.
+
+* initiateNodes:
+Initializes every node with a node number, which is used throughout the program to easily organize nodes and to map 1 to 1 with the index of the node in the node vectors.
+
+* determineBandwidth:
+Uses a uniform real distribution to randomize a value between 0 and 1 for the bandwidth of each connection between nodes.
+
+* determineDelay:
+Semi-randomly generates a value for delay on a router node.
+
+* randomlyConnectNodes:
+Nodes are connected by choosing at random. The first connection takes 2 random nodes from the collection of all nodes and adds them to a separate vector of connected nodes, while also removing them from the 'rawNodes' vector.
+At the end of this function, all nodes have a set of neighbors, which we use when building our routing tables later.
+
+* computeDropRate:
+Uses the total number of dropped packets vs the total number of packets generated to determine a drop rate for the statistics portion of the sim.
+
+* generatePoission:
+Uses a poisson distribution to generate random values. With the prescribe value of 0.5, we generally end up with values between 0 and 2. 
+These values are for generating the source and destination pairs of nodes.
+
+* writeNodeFile:
+Writes the vector of connected nodes to a textFile.
+For each node, it's number and a neighbor number are written to a line until all neighbors have been written alongside the current node.
+
+* loadNodeFile:
+Opens a file and intiates 150 empty nodes.
+Then it finds each connected pair from the file and assigns the respective nodes their neighbor nodes.
+Avoids duplicate neighbors by identifying unique pairings.
+
+* spanConnection:
+Used for proving that a graph is connected.
+makes a 150 size array and 0's it out. Then a node is chosen from the vector of connected nodes.
+From this node, we must reach at least every other node once. If this is done, then we have a connected graph.
+Passing a file hosting a disconnected graph will result in a 'not connected' verdict and the program will end.
+
+* determineConnection:
+sets up some variables to pass for the spanConnection function
+
+*buildTable:
+This is where our routing table for each nodes is generated. The method for generation is based on djikstra's algorithm.
+Our table has a row for each node [0-150] and two values associated with each: their depth relative to the given node, and node that found them as their neighbor. This allows us to build a backwards path from any desired destination.
+
+initTable:
+sets up the 150x2 2d array for the buildTable function.
+
+------------ Bnode.cpp // functions as a node in the network, but also a router when designated
+------------ Bpacket.cpp // simulates a packet to send, with a source, destination, size.
+
